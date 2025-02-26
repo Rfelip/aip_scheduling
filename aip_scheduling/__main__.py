@@ -1,7 +1,7 @@
 from ticdat import standard_main
 
-from mip_template.main import solve
-from mip_template.schemas import input_schema, output_schema
+from aip_scheduling.main import solve
+from aip_scheduling.schemas import input_schema, output_schema
 
 
 # When run from the command line, will read/write json/xls/csv/db/sql/mdb files

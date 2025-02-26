@@ -6,21 +6,21 @@ https://github.com/mipwise/mip-go/tree/main/5_develop/4_data_schema
 from mwcommons.ticdat_types import positive_integer, text, binary
 from ticdat import PanDatFactory
 
-from mip_template.constants import SampleConstants
+from aip_scheduling.constants import SampleConstants
 
 
 # region INPUT SCHEMA
 input_schema = PanDatFactory(
     parameters   = [['Name'], ['Value']],  # Do not change the column names of the parameters table!
-    person_lectures = [['Name', 'Symposium_ID'], ['Organizer', 'University', 'Email', 'Subject', 'Main tag', 'Secondary tag']],
+    person_lectures = [['Participant_Name', 'Symposium_ID'], ['Is_Organizer', 'University', 'Email', 'Subject', 'Main tag', 'Secondary tag']],
     symposiums = [['Symposium_ID'], ['Organizer', 'Blocks', 'Title',]]
 )
 
 ## Restrições de integridade das tabelas
 table = 'persons_lectures'
-input_schema.set_data_type(table=table, field='Name', **text())
+input_schema.set_data_type(table=table, field='Participant_Name', **text())
 input_schema.set_data_type(table=table, field='Symposium_ID', **positive_integer(min=0))
-input_schema.set_data_type(table=table, field='Organizer', **binary())
+input_schema.set_data_type(table=table, field='Is_Organizer', **binary())
 input_schema.set_data_type(table=table, field='University', **text())
 input_schema.set_data_type(table=table, field='Email', **text())
 input_schema.set_data_type(table=table, field='Subject', **text())
@@ -29,7 +29,7 @@ input_schema.set_data_type(table=table, field='Secondary tag', **text())
 
 table = 'symposiums'
 input_schema.set_data_type(table=table, field='Symposium_ID', **positive_integer(min=0))
-input_schema.set_data_type(table=table, field='Organizer', **binary())
+input_schema.set_data_type(table=table, field='Organizer', **text())
 input_schema.set_data_type(table=table, field='Blocks', **positive_integer(min=1, inclusive_min=True))
 input_schema.set_data_type(table=table, field='Title', **text()) 
 
@@ -45,4 +45,4 @@ table = 'sample_output_table'
 output_schema.set_data_type(table=table, field='Primary Key', **text())
 output_schema.set_data_type(table=table, field='Data Field', **text())
 # endregion
-# endregion
+

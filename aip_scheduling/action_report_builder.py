@@ -4,7 +4,7 @@ import plotly.figure_factory as ff
 import plotly.graph_objects as go
 from plotly.graph_objs import Figure
 
-from mip_template.constants import APP_OUTPUT_DIR
+from aip_scheduling.constants import APP_OUTPUT_DIR
 
 
 def _save_plot(fig: Figure, plot_name: str, path: str=APP_OUTPUT_DIR):
