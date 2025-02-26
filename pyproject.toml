@@ -1,7 +1,7 @@
 [project]
-name = "mip_template"
+name = "aip_scheduling"
 dynamic = ["version"]
-description = "Template package for building analytics solutions"
+description = "Package to schedule the minisymposiums of the AIP 2025 conference"
 authors = [
     {name = "Mip Wise", email = "contact@mipwise.com"}
 ]
@@ -21,9 +21,9 @@ dependencies = [
 ]
 
 [project.urls]
-homepage = "https://github.com/mipwise/mip_template"
-source = "https://github.com/mipwise/mip_template"
-tracker = "https://github.com/mipwise/mip_template/issues"
+homepage = "https://github.com/Rfelip/aip_scheduling"
+source = "https://github.com/Rfelip/aip_scheduling"
+tracker = "https://github.com/Rfelip/aip_scheduling/issues"
 
 [build-system]
 build-backend = "setuptools.build_meta"
@@ -33,9 +33,9 @@ requires = [
 ]
 
 [tool.setuptools.dynamic]
-version = {attr = "mip_template.__version__"}
+version = {attr = "aip_scheduling.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["mip_template"]
-exclude = ["test_mip_template"]
+include = ["aip_scheduling"]
+exclude = ["test_aip_scheduling"]
