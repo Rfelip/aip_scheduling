@@ -25,6 +25,7 @@ def le_arquivo_ms():
     df['Blocos'] = df['Blocos'].astype('int64')
     return df
 
+
 def le_arquivo_pesos_sessoes():
     # Leitura completa do arquivo de pessoas (organizadores e palestrantes):
     print('Realizando o processo de Leitura.')
@@ -39,6 +40,7 @@ def le_arquivo_pesos_sessoes():
     df['sessão 8'] = df['sessão 8'].astype('int64')
     df['sessão 9'] = df['sessão 9'].astype('int64')
     return df
+
 
 def le_arquivo_pesos_paralelas():
     # Leitura completa do arquivo de pessoas (organizadores e palestrantes):
@@ -56,17 +58,10 @@ def le_arquivo_pesos_paralelas():
     df['paralela 10'] = df['paralela 10'].astype('int64')
     return df
 
+
 # Leitura do arquivo de pessoas - sua identidade, MS's que palestra e MS's
 # que organiza.
 dataframe_pessoas= le_arquivo_pessoas()
-'''
-print("Informações:")
-print(dataframe_pessoas.info())
-print()
-
-print("Dtypes:")
-print(dataframe_pessoas.dtypes)
-'''
 lista_pessoas = []
 for indice, valor in dataframe_pessoas.iterrows():
     linha = [valor[0], valor[1], [valor[4], valor[5]], [valor[6], valor[7]]]
@@ -81,7 +76,7 @@ for i in range(len(lista_pessoas)):
     if 9999 in lista_pessoas[i][3]:
         lista_pessoas[i][3].remove(9999)
     print(lista_pessoas[i])
-    
+
 # Leitura do arquivo de MS - sua identidade e quantidade de blocos.
 dataframe_ms= le_arquivo_ms()
 lista_ms = []
@@ -210,7 +205,6 @@ for k in range(len(Gspeaker)):
     for s in range(sessoes):
         model.addConstr(gp.quicksum(x[mm][b][s][p] for p in range(paralelas) for mm, b in Gspeaker[k]) <= 1, name = "C4: k_" + str(k))
 
-
 # C5) Every participation of the organizer there cannot be a temporal overlap between MS that he organizes or speaks at:
 Gorganizer = []
 #for o in range(len(lista_pessoas)):
@@ -247,7 +241,6 @@ if len(Gorganizer) > 0:
         for s in range(sessoes):
             model.addConstr(gp.quicksum(x[mm][b][s][p] for p in range(paralelas) for mm, b in Gorganizer[o]) <= 1, name = "C1: o_" + str(o)) 
 
-
 # C6) There is a special set with fixed allocation.
 # Example: Gspecial = [[1,2,3,4], [3,2,5,6]]
 Gspecial = []
@@ -271,7 +264,6 @@ for m in range(ms):
                                                                 gp.quicksum(x[m][b2][s2][p] for p in range(paralelas)))
             b2 += 1
             b1 += 1
-
 
 # C8) The connection between blocks of the same MS is also characterized by the sequence of parallels occupied by these blocks:
 for m in range(ms):
@@ -306,43 +298,10 @@ for m in range(ms):
 model.setObjective(lexpr, GRB.MINIMIZE)
 
 # Programming a limit time for Gurobi:
-model.setParam('TimeLimit', 1*60)
+model.setParam('TimeLimit', 20*60)
 
 # Optimizing the model
 model.optimize()
-
-'''
-#print(model.display())
-# From "https://www.gurobi.com/documentation/10.0/examples/workforce2_py.html#subsubsection:workforce2.py":
-status = model.Status
-if status == gp.GRB.UNBOUNDED:
-    print('The model cannot be solved because it is unbounded')
-    sys.exit(0)
-if status == gp.GRB.OPTIMAL:
-    print('The optimal objective is %g' % model.ObjVal)
-    sys.exit(0)
-if status != gp.GRB.INF_OR_UNBD and status != gp.GRB.INFEASIBLE:
-    print('Optimization was stopped with status %d' % status)
-    sys.exit(0)
-
-# do IIS
-print('The model is infeasible; computing IIS')
-removed = []
-# Loop until we reduce to a model that can be solved
-while True:
-
-    model.computeIIS()
-    print('\nThe following constraint cannot be satisfied:')
-    for c in model.getConstrs():
-        if c.IISConstr:
-            print('%s' % c.ConstrName)
-            sys.exit(0)
-            # Remove a single constraint from the model
-            removed.append(str(c.ConstrName))
-            model.remove(c)
-            break
-    print('')
-'''
 
 # Retorna a solução
 sol_x = [[[[x[m][b][s][p].x for m in range(ms)] for b in range(blocos)] for s in range(sessoes)] for p in range(paralelas)]
@@ -391,3 +350,124 @@ for m in range(ms):
             b2 += 1
             b1 += 1
 print(conta)
+
+# Generating reports:
+arquivo = open("Relatórios AIP2025.txt", "w+", encoding="utf-8")
+
+# Relatório de Alocação dos MS e seus blocos: 
+print("Relatório de Alocação dos MS e seus blocos:")
+print("Relatório de Alocação dos MS e seus blocos:", file=arquivo)
+for m in range(ms):
+    novo = True
+    for b in range(lista_ms[m][2]):
+        for s in range(sessoes):
+            for p in range(paralelas):
+                if x[m][b][s][p].x > 0.99:
+                    if novo:
+                        print()
+                        print('', file=arquivo)
+                    print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} paralela: {:>2}".format(m + 1, b + 1, s + 1, p + 1))
+                    print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} paralela: {:>2}".format(m + 1, b + 1, s + 1, p + 1), file=arquivo)
+                    novo = False
+                    
+# Relatório de ocupação das sessões:
+print()
+print()
+print("Relatório de Ocupação das Sessões:")
+print('', file=arquivo)
+print('', file=arquivo)
+print("Relatório de Ocupação das Sessões:", file=arquivo)
+for s in range(sessoes):
+    novo = True
+    for p in range(paralelas):
+        for m in range(ms):
+            for b in range(lista_ms[m][2]):
+                if x[m][b][s][p].x > 0.99:
+                    if novo:
+                        print()
+                        print('', file=arquivo)
+                    print("    sessão: {:>1} paralela: {:>2}  ms: {:>2} bloco: {:>1}".format(s + 1, p + 1, m + 1, b + 1))
+                    print("    sessão: {:>1} paralela: {:>2}  ms: {:>2} bloco: {:>1}".format(s + 1, p + 1, m + 1, b + 1), file=arquivo)
+                    novo = False
+             
+# Relatório de alocação das paralelas
+print()
+print()
+print("Relatório de Ocupação das Paralelas:")
+print('', file=arquivo)
+print('', file=arquivo)
+print("Relatório de Ocupação das Paralelas:", file=arquivo)
+for p in range(paralelas):
+    novo = True
+    for s in range(sessoes):
+        for m in range(ms):
+            for b in range(lista_ms[m][2]):
+                if x[m][b][s][p].x > 0.99:
+                    if novo:
+                        print()
+                        print('', file=arquivo)
+                    print("    paralela: {:>2} sessão: {:>1}  ms: {:>2} bloco: {:>1}".format(p + 1, s + 1, m + 1, b + 1))
+                    print("    paralela: {:>2} sessão: {:>1}  ms: {:>2} bloco: {:>1}".format(p + 1, s + 1, m + 1, b + 1), file=arquivo)
+                    novo = False
+
+# Relatório de Participação de Palestrantes e Organizadores:
+print()
+print()
+print("Relatório de Participação de Palestrantes e Organizadores:")
+print()
+print('', file=arquivo)
+print('', file=arquivo)
+print("Relatório de Participação de Palestrantes e Organizadores:", file=arquivo)
+print('', file=arquivo)
+todos = []
+for joker in range(len(lista_pessoas)):
+    temp = []
+    if joker != 140:
+        if len(lista_pessoas[joker][2]) != 0:
+            for j in range(len(lista_pessoas[joker][2])):
+               temp.append(lista_pessoas[joker][2][j])
+        if len(lista_pessoas[joker][3]) != 0:
+            for j in range(len(lista_pessoas[joker][3])):
+                temp.append(lista_pessoas[joker][3][j])
+        # eliminate duplications
+        temp = list(set(temp))
+    todos.append(temp)
+for joker in range(len(lista_pessoas)):
+    print("    ID: {:>3}  Nome: {:<40} ".format(lista_pessoas[joker][0], lista_pessoas[joker][1]))
+    print("    ID: {:>3}  Nome: {:<40} ".format(lista_pessoas[joker][0], lista_pessoas[joker][1]), file=arquivo)
+    isSpeaker = False
+    if len(lista_pessoas[joker][2]) > 0:
+        isSpeaker = True
+    isOrganizer = False
+    if len(lista_pessoas[joker][3]) > 0:
+        isOrganizer = True
+    if isSpeaker and isOrganizer:
+        print("    Palestrante e Organizador.")
+        print("    Palestrante e Organizador.", file=arquivo)
+    else:
+        if isSpeaker and not isOrganizer:
+            print("    Palestrante.")
+            print("    Palestrante.", file=arquivo)
+        else:
+            if not isSpeaker and isOrganizer:
+                print("    Organizador.")
+                print("    Organizador.", file=arquivo)
+            else:
+                print("    Não é palestrante e nem organizador.")
+                print("    Não é palestrante e nem organizador.", file=arquivo)
+                sys.exit(0)
+    todos[joker].sort()
+    if joker != 140:
+        for j in range(len(todos[joker])):
+            m = todos[joker][j] - 1
+            for b in range(lista_ms[m][2]):
+                for s in range(sessoes):
+                    for p in range(paralelas):
+                        if x[m][b][s][p].x > 0.99:
+                            print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} paralela: {:>2}".format(m + 1, b + 1, s + 1, p + 1))
+                            print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} paralela: {:>2}".format(m + 1, b + 1, s + 1, p + 1), file=arquivo)
+    print()
+    print('', file=arquivo)
+    
+arquivo.close()   
+                    
