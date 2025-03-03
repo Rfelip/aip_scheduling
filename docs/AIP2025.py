@@ -139,6 +139,7 @@ for s in range (sessoes):
      
 # C2) Every MS must be composed for all its blocks, that is, each block must have a garanteed allocation:
 # Verificar posteriormente: Por que esta implementação leva 73 seg e a de baixo 537 seg? 
+'''
 for m in range(ms):
     model.addConstr(gp.quicksum(x[m][b][s][p] for p in range(paralelas) for s in range(sessoes) for b in range(blocos)) == lista_ms[m][2], name = "C2_a: m_" + str(m))
     if lista_ms[m][2] == 2:
@@ -147,6 +148,7 @@ for m in range(ms):
         if lista_ms[m][2] == 1:
             model.addConstr(gp.quicksum(x[m][1][s][p] for p in range(paralelas) for s in range(sessoes)) == 0, name = "C2_c: m_" + str(m))
             model.addConstr(gp.quicksum(x[m][2][s][p] for p in range(paralelas) for s in range(sessoes)) == 0, name = "C2_d: m_" + str(m))
+'''
 for m in range(ms):
     for b in range(blocos):
         if b < lista_ms[m][2]:
@@ -298,7 +300,7 @@ for m in range(ms):
 model.setObjective(lexpr, GRB.MINIMIZE)
 
 # Programming a limit time for Gurobi:
-model.setParam('TimeLimit', 20*60)
+model.setParam('TimeLimit', 45*60)
 
 # Optimizing the model
 model.optimize()
