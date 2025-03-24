@@ -12,20 +12,18 @@ from aip_scheduling.constants import SampleConstants
 # region INPUT SCHEMA
 input_schema = PanDatFactory(
     parameters   = [['Name'], ['Value']],  # Do not change the column names of the parameters table!
-    person_lectures = [['Participant_Name', 'Symposium_ID'], ['Is_Organizer', 'University', 'Email', 'Subject', 'Main tag', 'Secondary tag']],
-    symposiums = [['Symposium_ID'], ['Organizer', 'Blocks', 'Title',]]
+    minisymposiums = [['ID'],['Nome', 'Blocks']],
+    person = [["Nome"], ['Universidade', 'País', 'Palestra 1','Palestra 2', 'Organiza 1', 'Organiza 2']],
+    session_weights = [],
+    paralelas_weights = []
 )
 
 ## Restrições de integridade das tabelas
-table = 'persons_lectures'
+table = 'minisymposiums'
 input_schema.set_data_type(table=table, field='Participant_Name', **text())
 input_schema.set_data_type(table=table, field='Symposium_ID', **positive_integer(min=0))
 input_schema.set_data_type(table=table, field='Is_Organizer', **binary())
-input_schema.set_data_type(table=table, field='University', **text())
-input_schema.set_data_type(table=table, field='Email', **text())
-input_schema.set_data_type(table=table, field='Subject', **text())
-input_schema.set_data_type(table=table, field='Main tag', **text())
-input_schema.set_data_type(table=table, field='Secondary tag', **text())
+
 
 table = 'symposiums'
 input_schema.set_data_type(table=table, field='Symposium_ID', **positive_integer(min=0))
