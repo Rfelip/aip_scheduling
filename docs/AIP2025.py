@@ -113,7 +113,7 @@ for i in range(len(lista_pesos_paralelas)):
 # Implementação do modelo matemático.
 # Cria o ambiente e o modelo
 model = gp.Model("AIP2025")
-ms = 30
+ms = 38
 blocos = 3
 sessoes = 9
 paralelas = 10
@@ -211,7 +211,7 @@ for k in range(len(Gspeaker)):
 Gorganizer = []
 #for o in range(len(lista_pessoas)):
 for o in range(len(lista_pessoas)):
-    if o != 140:
+    if o != 99999:
         if len(lista_pessoas[o][3]) != 0:
             temp1 = []
             if len(lista_pessoas[o][2]) != 0:
@@ -245,12 +245,21 @@ if len(Gorganizer) > 0:
 
 # C6) There is a special set with fixed allocation.
 # Example: Gspecial = [[1,2,3,4], [3,2,5,6]]
+'''
 Gspecial = []
 if len(Gspecial) > 0:
     for (m, b, s, p) in Gspecial:
         print(m, b, s, p)
         model.addConstr(x[m][b][s][p] == 1, name = "C6: m_" + str(m) + " b_" + str(b) + " s_" + str(s)+ " p_" + str(p))
 
+# Exemplo:
+Gspecial = [[39, 1, 1, 1], [40, 1, 1, 2]]
+if len(Gspecial) > 0:
+    print(len(Gspecial))
+    for (m, b, s, p) in Gspecial:
+        model.addConstr(x[m - 1][b - 1][s - 1][p - 1] == 1, name = "C6: m_" + str(m) + " b_" + str(b) + " s_" + str(s)+ " p_" + str(p))
+'''
+        
 # C7) The connection between blocks of the same MS is characterized by the sequence of sessions occupied by these blocks:
 for m in range(ms):
     b2 = lista_ms[m][2]
@@ -296,15 +305,25 @@ for m in range(ms):
         b1 = b2 - 1
         for p1 in range(paralelas):
             for p2 in range(paralelas):
-                lexpr.add(z[m][b1][b2][p1][p2], lista_pesos_paralelas[p1][p2])   
+                lexpr.add(z[m][b1][b2][p1][p2], lista_pesos_paralelas[p1][p2]) 
+peso_abs_sessao = [5, 5, 5, 5, 5, 5, 11, 11, 11]
+for m in range(ms):
+    for b in range(lista_ms[m][2]):
+        for s in range(sessoes):
+            for p in range(paralelas):
+                lexpr.add(x[m][b][s][p], peso_abs_sessao[s])
 model.setObjective(lexpr, GRB.MINIMIZE)
 
 # Programming a limit time for Gurobi:
-model.setParam('TimeLimit', 45*60)
+model.setParam('TimeLimit', 60*60)
 
 # Optimizing the model
 model.optimize()
 
+entrada = "n"
+while entrada != "s":
+    entrada = input("Entre com s para continuar!")
+    
 # Retorna a solução
 sol_x = [[[[x[m][b][s][p].x for m in range(ms)] for b in range(blocos)] for s in range(sessoes)] for p in range(paralelas)]
 conta = 0
@@ -316,7 +335,7 @@ for m in range(ms):
                 if x[m][b][s][p].x > 0.99:
                     if novo:
                         print()
-                    print("ms: ", m + 1,"bloco: ", b + 1, "    sessão:", s + 1, "paralela: ", p + 1)
+                    print("ms: ", m + 1,"bloco: ", b + 1, "    sessão:", s + 1, "sala: ", p + 1)
                     novo = False
                     conta += 1
 print(conta)
@@ -354,7 +373,7 @@ for m in range(ms):
 print(conta)
 
 # Generating reports:
-arquivo = open("Relatórios AIP2025.txt", "w+", encoding="utf-8")
+arquivo = open("Relatórios AIP2025 - " + str(paralelas) + " salas.txt", "w+", encoding="utf-8")
 
 # Relatório de Alocação dos MS e seus blocos: 
 print("Relatório de Alocação dos MS e seus blocos:")
@@ -368,8 +387,8 @@ for m in range(ms):
                     if novo:
                         print()
                         print('', file=arquivo)
-                    print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} paralela: {:>2}".format(m + 1, b + 1, s + 1, p + 1))
-                    print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} paralela: {:>2}".format(m + 1, b + 1, s + 1, p + 1), file=arquivo)
+                    print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} sala: {:>2}".format(m + 1, b + 1, s + 1, p + 1))
+                    print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} sala: {:>2}".format(m + 1, b + 1, s + 1, p + 1), file=arquivo)
                     novo = False
                     
 # Relatório de ocupação das sessões:
@@ -388,17 +407,17 @@ for s in range(sessoes):
                     if novo:
                         print()
                         print('', file=arquivo)
-                    print("    sessão: {:>1} paralela: {:>2}  ms: {:>2} bloco: {:>1}".format(s + 1, p + 1, m + 1, b + 1))
-                    print("    sessão: {:>1} paralela: {:>2}  ms: {:>2} bloco: {:>1}".format(s + 1, p + 1, m + 1, b + 1), file=arquivo)
+                    print("    sessão: {:>1} sala: {:>2}  ms: {:>2} bloco: {:>1}".format(s + 1, p + 1, m + 1, b + 1))
+                    print("    sessão: {:>1} sala: {:>2}  ms: {:>2} bloco: {:>1}".format(s + 1, p + 1, m + 1, b + 1), file=arquivo)
                     novo = False
              
 # Relatório de alocação das paralelas
 print()
 print()
-print("Relatório de Ocupação das Paralelas:")
+print("Relatório de Ocupação das Salas:")
 print('', file=arquivo)
 print('', file=arquivo)
-print("Relatório de Ocupação das Paralelas:", file=arquivo)
+print("Relatório de Ocupação das Salas:", file=arquivo)
 for p in range(paralelas):
     novo = True
     for s in range(sessoes):
@@ -408,8 +427,8 @@ for p in range(paralelas):
                     if novo:
                         print()
                         print('', file=arquivo)
-                    print("    paralela: {:>2} sessão: {:>1}  ms: {:>2} bloco: {:>1}".format(p + 1, s + 1, m + 1, b + 1))
-                    print("    paralela: {:>2} sessão: {:>1}  ms: {:>2} bloco: {:>1}".format(p + 1, s + 1, m + 1, b + 1), file=arquivo)
+                    print("    sala: {:>2} sessão: {:>1}  ms: {:>2} bloco: {:>1}".format(p + 1, s + 1, m + 1, b + 1))
+                    print("    sala: {:>2} sessão: {:>1}  ms: {:>2} bloco: {:>1}".format(p + 1, s + 1, m + 1, b + 1), file=arquivo)
                     novo = False
 
 # Relatório de Participação de Palestrantes e Organizadores:
@@ -424,7 +443,7 @@ print('', file=arquivo)
 todos = []
 for joker in range(len(lista_pessoas)):
     temp = []
-    if joker != 140:
+    if joker != 99999:
         if len(lista_pessoas[joker][2]) != 0:
             for j in range(len(lista_pessoas[joker][2])):
                temp.append(lista_pessoas[joker][2][j])
@@ -444,30 +463,43 @@ for joker in range(len(lista_pessoas)):
     if len(lista_pessoas[joker][3]) > 0:
         isOrganizer = True
     if isSpeaker and isOrganizer:
-        print("    Palestrante e Organizador.")
-        print("    Palestrante e Organizador.", file=arquivo)
+        mensagem = "    Palestrante e Organizador."
     else:
         if isSpeaker and not isOrganizer:
-            print("    Palestrante.")
-            print("    Palestrante.", file=arquivo)
+            mensagem = "    Palestrante."
         else:
             if not isSpeaker and isOrganizer:
-                print("    Organizador.")
-                print("    Organizador.", file=arquivo)
+                mensagem = "    Organizador."
             else:
-                print("    Não é palestrante e nem organizador.")
-                print("    Não é palestrante e nem organizador.", file=arquivo)
+                mensagem = "    Não é palestrante e nem organizador." 
                 sys.exit(0)
+    print(mensagem)
+    print(mensagem, file = arquivo)
     todos[joker].sort()
-    if joker != 140:
+    if joker != 99999:
         for j in range(len(todos[joker])):
             m = todos[joker][j] - 1
             for b in range(lista_ms[m][2]):
                 for s in range(sessoes):
                     for p in range(paralelas):
                         if x[m][b][s][p].x > 0.99:
-                            print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} paralela: {:>2}".format(m + 1, b + 1, s + 1, p + 1))
-                            print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} paralela: {:>2}".format(m + 1, b + 1, s + 1, p + 1), file=arquivo)
+                            mensagem = ""
+                            if b == 0:
+                                if m + 1 in lista_pessoas[joker][2] and m + 1 in lista_pessoas[joker][3]:
+                                    mensagem = "Palestrante e Organizador."
+                                else:
+                                    if m + 1 in lista_pessoas[joker][2] and m + 1 not in lista_pessoas[joker][3]:
+                                        mensagem = "Palestrante."
+                                    else:
+                                        if m + 1 not in lista_pessoas[joker][2] and m + 1 in lista_pessoas[joker][3]:
+                                            mensagem = "Organizador."
+                                        else:
+                                            mensagem = "Não é palestrante e nem organizador." 
+                                            sys.exit(0)
+                            
+                            print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} sala: {:>2} {:<2}".format(m + 1, b + 1, s + 1, p + 1, mensagem))
+                            print("    ms: {:>2} bloco: {:>1}  sessão: {:>1} sala: {:>2} {:<2}".format(m + 1, b + 1, s + 1, p + 1, mensagem), file=arquivo)
+                                            
     print()
     print('', file=arquivo)
     
