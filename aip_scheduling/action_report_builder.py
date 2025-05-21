@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from plotly.graph_objs import Figure
 
 from aip_scheduling.constants import APP_OUTPUT_DIR
+from aip_scheduling.visualizer import visualize_schedule_for_minisymposium, visualize_schedule_for_session, visualize_schedule_for_participant
 
 
 def _save_plot(fig: Figure, plot_name: str, path: str=APP_OUTPUT_DIR):
@@ -16,8 +17,9 @@ def _save_plot(fig: Figure, plot_name: str, path: str=APP_OUTPUT_DIR):
     :param plot_name: Name of the plot to be saved as an HTML file and to be displayed on Mip Hub.
     :param path: Path to the output
     """
-    file_path = os.path.join(f'{path}/{plot_name}.html')
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    # Ensure the directory exists
+    os.makedirs(path, exist_ok=True)
+    file_path = os.path.join(path, f'{plot_name}.html')
     fig.write_html(file_path)
 
 
@@ -38,5 +40,36 @@ def report_builder_solve(dat, sln, path=APP_OUTPUT_DIR):
     fig = ff.create_table(sample_output_table_df)
     _save_plot(fig, 'TablePlot', path)
     # endregion
-    sln.sample_output_table = sample_output_table_df
+
+    # Call new visualization functions
+    if hasattr(sln, 'minisymposium_assignments') and sln.minisymposium_assignments:
+        if hasattr(dat, 'minissimposios') and dat.minissimposios:
+            # try:
+            #     sample_ms_id = next(iter(dat.minissimposios.keys()))
+            #     print(f"Generating minisymposium schedule for {sample_ms_id}...")
+            #     visualize_schedule_for_minisymposium(dat, sln, sample_ms_id, path)
+            # except StopIteration:
+            #     print("Warning: dat.minissimposios is not empty but could not get a key.")
+            pass # Placeholder for potential future non-sample calls
+        else:
+            print("Skipping minisymposium schedule: dat.minissimposios is empty or missing.")
+
+        # sample_session_id = "S1" # Assuming S1 is a valid session ID
+        # print(f"Generating session schedule for {sample_session_id}...")
+        # visualize_schedule_for_session(sln, sample_session_id, path)
+
+        if hasattr(dat, 'pessoas') and dat.pessoas:
+            # try:
+            #     sample_participant_id = next(iter(dat.pessoas.keys()))
+            #     print(f"Generating participant schedule for participant {sample_participant_id}...")
+            #     visualize_schedule_for_participant(dat, sln, sample_participant_id, path)
+            # except StopIteration:
+            #     print("Warning: dat.pessoas is not empty but could not get a key.")
+            pass # Placeholder for potential future non-sample calls
+        else:
+            print("Skipping participant schedule: dat.pessoas is empty or missing.")
+    else:
+        print("Skipping all new schedule visualizations: sln.minisymposium_assignments is empty or missing.")
+
+    sln.sample_output_table = sample_output_table_df # This line seems to be from the original template
     return sln
