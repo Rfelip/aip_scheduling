@@ -1,0 +1,4 @@
+ID,Nome,Palestra_MS_ID_Bloco_1,Palestra_MS_ID_Bloco_2,Organiza_MS_ID_1,Organiza_MS_ID_2
+101,Organizer Alpha,MS1 B1,,MS1,
+102,Speaker Beta,MS1 B2,MS2 B1,,
+103,Multi Role Gamma,,MS2 B1,MS2,
